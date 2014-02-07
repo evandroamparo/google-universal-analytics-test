@@ -2,7 +2,7 @@ unit Analytics;
 
 interface
 
-uses HitType, REST.Client, Vcl.Forms;
+uses HitType, REST.Client, Vcl.Forms, System.Classes;
 
 type
   TAnalyticsTracker = class
@@ -12,16 +12,22 @@ type
     FHttpClient: TRESTClient;
     FAppName: string;
     FAppVersion: string;
+    FFiels: TStringList;
     const PROTOCOL_VERSION = '1';
     const BASE_URL = 'http://www.google-analytics.com/collect';
     const BASE_URL_HTTPS = 'https://ssl.google-analytics.com/collect';
   public
+    const SESSION_CONTROL = 'sc';
+    const HIT_TYPE = 't';
+    const SCREEN_NAME = 'cd';
     constructor Create(TrackingID, ClientID, AppName, AppVersion: string);
     destructor Destroy; override;
-    
-    procedure Track(HitType: THitType; Value: string);
+
+    procedure SetField(Name, Value: string);
+    procedure Track;
+    procedure SessionStart;
+    procedure SessionEnd;
     procedure FormShow(Form: TForm);
-    procedure FormClose(Form: TForm);
   end;
 
 implementation
@@ -47,29 +53,48 @@ begin
   FClientID := ClientID;
   FAppName := AppName;
   FAppVersion := AppVersion;
-  FHttpClient := TRESTClient.Create(BASE_URL_HTTPS);
+  FHttpClient := TRESTClient.Create(BASE_URL);
+  FFiels := TStringList.Create;
 //  FHttpClient.ProxyPort := 8888;
 //  FHttpClient.ProxyServer := 'localhost';
 end;
 
 destructor TAnalyticsTracker.Destroy;
 begin
+  FFiels.Free;
   FHttpClient.Free;
-end;
-
-procedure TAnalyticsTracker.FormClose(Form: TForm);
-begin
-
 end;
 
 procedure TAnalyticsTracker.FormShow(Form: TForm);
 begin
-
+  SetField(HIT_TYPE, 'pageview');
+  SetField(SCREEN_NAME, Form.Caption);
+  Track;
 end;
 
-procedure TAnalyticsTracker.Track(HitType: THitType; Value: string);
+procedure TAnalyticsTracker.SessionEnd;
+begin
+//  SetField(HIT_TYPE, 'appview');
+  SetField(SESSION_CONTROL, 'end');
+  Track;
+end;
+
+procedure TAnalyticsTracker.SessionStart;
+begin
+//  SetField(HIT_TYPE, 'appview'); // verificar se é necessário enviar algo com SESSION_CONTROL
+  SetField(SESSION_CONTROL, 'start');
+  Track;
+end;
+
+procedure TAnalyticsTracker.SetField(Name, Value: string);
+begin
+  FFiels.Add(Name + '=' + Value);
+end;
+
+procedure TAnalyticsTracker.Track;
 var
   Request: TRESTRequest;
+  I: Integer;
 begin
   Request := TRESTRequest.Create(nil);
   try
@@ -77,12 +102,15 @@ begin
     Request.AddParameter('v', PROTOCOL_VERSION);
     Request.AddParameter('tid', FTrackingID);
     Request.AddParameter('cid', FClientID);
-    Request.AddParameter('t', 'appview');
     Request.AddParameter('an', FAppName);
     Request.AddParameter('av', FAppVersion);
-    Request.AddParameter('cd', Value);
+
+    for I := 0 to FFiels.Count - 1 do
+       Request.AddParameter(FFiels.Names[i], FFiels.ValueFromIndex[i]);
+
     Request.Client := FHttpClient;
     Request.Execute;
+    FFiels.Clear;
   finally
     Request.Free;
   end;

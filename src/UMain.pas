@@ -15,6 +15,8 @@ type
     procedure BtnForm1Click(Sender: TObject);
     procedure BtnForm2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
   private
     FAnalyticsTracker: TAnalyticsTracker;
     procedure Track(Form: TForm);
@@ -46,6 +48,11 @@ begin
   Form2.ShowModal;
 end;
 
+procedure TFrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+//  FAnalyticsTracker.SessionEnd;
+end;
+
 procedure TFrmMain.FormCreate(Sender: TObject);
 var
   Config: TStringList;
@@ -56,6 +63,7 @@ begin
       Config.LoadFromFile(ID_FILE);
       FAnalyticsTracker := TAnalyticsTracker.Create(Config.Values['trackingid'],
         Config.Values['clientid'], Application.Title, '1.0');
+//      FAnalyticsTracker.SessionStart;
       BtnForm1.Enabled := true;
       BtnForm2.Enabled := true;
     finally
@@ -68,9 +76,14 @@ begin
   end;
 end;
 
+procedure TFrmMain.FormDestroy(Sender: TObject);
+begin
+  FAnalyticsTracker.Free;
+end;
+
 procedure TFrmMain.Track(Form: TForm);
 begin
-  FAnalyticsTracker.Track(htAppView, Form.Caption);
+  FAnalyticsTracker.FormShow(Form);
 end;
 
 end.
