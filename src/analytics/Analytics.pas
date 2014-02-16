@@ -20,6 +20,7 @@ type
     const SESSION_CONTROL = 'sc';
     const HIT_TYPE = 't';
     const SCREEN_NAME = 'cd';
+    const SCREEN_RESOLUTION = 'sr';
     constructor Create(TrackingID, ClientID, AppName, AppVersion: string);
     destructor Destroy; override;
 
@@ -67,21 +68,21 @@ end;
 
 procedure TAnalyticsTracker.FormShow(Form: TForm);
 begin
-  SetField(HIT_TYPE, 'pageview');
+  SetField(HIT_TYPE, 'appview');
   SetField(SCREEN_NAME, Form.Caption);
   Track;
 end;
 
 procedure TAnalyticsTracker.SessionEnd;
 begin
-//  SetField(HIT_TYPE, 'appview');
+  SetField(HIT_TYPE, 'appview');
   SetField(SESSION_CONTROL, 'end');
   Track;
 end;
 
 procedure TAnalyticsTracker.SessionStart;
 begin
-//  SetField(HIT_TYPE, 'appview'); // verificar se é necessário enviar algo com SESSION_CONTROL
+  SetField(HIT_TYPE, 'appview');
   SetField(SESSION_CONTROL, 'start');
   Track;
 end;
@@ -104,6 +105,7 @@ begin
     Request.AddParameter('cid', FClientID);
     Request.AddParameter('an', FAppName);
     Request.AddParameter('av', FAppVersion);
+    Request.AddParameter(SCREEN_RESOLUTION, Format('%dx%d', [Screen.Width, Screen.Height]));
 
     for I := 0 to FFiels.Count - 1 do
        Request.AddParameter(FFiels.Names[i], FFiels.ValueFromIndex[i]);

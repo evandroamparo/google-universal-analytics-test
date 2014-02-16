@@ -50,7 +50,7 @@ end;
 
 procedure TFrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-//  FAnalyticsTracker.SessionEnd;
+  FAnalyticsTracker.SessionEnd;
 end;
 
 procedure TFrmMain.FormCreate(Sender: TObject);
@@ -63,7 +63,7 @@ begin
       Config.LoadFromFile(ID_FILE);
       FAnalyticsTracker := TAnalyticsTracker.Create(Config.Values['trackingid'],
         Config.Values['clientid'], Application.Title, '1.0');
-//      FAnalyticsTracker.SessionStart;
+      FAnalyticsTracker.SessionStart;
       BtnForm1.Enabled := true;
       BtnForm2.Enabled := true;
     finally
