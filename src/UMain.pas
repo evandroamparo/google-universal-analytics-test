@@ -17,9 +17,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
+    procedure ActiveFormChange(Sender: TObject);
   private
     FAnalyticsTracker: TAnalyticsTracker;
-    procedure Track(Form: TForm);
   public
     { Public declarations }
   end;
@@ -36,15 +36,21 @@ uses UForm1, UForm2, System.SysUtils, HitType;
 const
   ID_FILE = 'config.txt';
 
+procedure TFrmMain.ActiveFormChange(Sender: TObject);
+begin
+  if (Screen.ActiveForm <> nil) and (Screen.ActiveForm <> self) then
+  begin
+    FAnalyticsTracker.FormShow(Screen.ActiveForm);
+  end;
+end;
+
 procedure TFrmMain.BtnForm1Click(Sender: TObject);
 begin
-  Track(Form1);
   Form1.ShowModal;
 end;
 
 procedure TFrmMain.BtnForm2Click(Sender: TObject);
 begin
-  Track(Form2);
   Form2.ShowModal;
 end;
 
@@ -66,6 +72,7 @@ begin
       FAnalyticsTracker.SessionStart;
       BtnForm1.Enabled := true;
       BtnForm2.Enabled := true;
+      Screen.OnActiveFormChange := ActiveFormChange;
     finally
       Config.Free;
     end;
@@ -79,11 +86,6 @@ end;
 procedure TFrmMain.FormDestroy(Sender: TObject);
 begin
   FAnalyticsTracker.Free;
-end;
-
-procedure TFrmMain.Track(Form: TForm);
-begin
-  FAnalyticsTracker.FormShow(Form);
 end;
 
 end.
