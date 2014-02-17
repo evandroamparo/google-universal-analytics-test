@@ -21,6 +21,10 @@ type
     const HIT_TYPE = 't';
     const SCREEN_NAME = 'cd';
     const SCREEN_RESOLUTION = 'sr';
+    const EVENT_CATEGORY = 'ec';
+    const EVENT_ACTION = 'ea';
+    const EVENT_LABEL = 'el';
+    const EVENT_VALUE = 'ev';
     constructor Create(TrackingID, ClientID, AppName, AppVersion: string);
     destructor Destroy; override;
 
@@ -70,6 +74,12 @@ procedure TAnalyticsTracker.FormShow(Form: TForm);
 begin
   SetField(HIT_TYPE, 'appview');
   SetField(SCREEN_NAME, Form.Caption);
+  Track;
+
+  SetField(HIT_TYPE, 'event');
+  SetField(EVENT_CATEGORY, 'form');
+  SetField(EVENT_ACTION, 'show');
+  SetField(EVENT_LABEL, Form.Caption);
   Track;
 end;
 
