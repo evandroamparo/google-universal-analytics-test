@@ -44,6 +44,8 @@ uses
 { TAnalyticsTracker }
 
 constructor TAnalyticsTracker.Create(TrackingID, ClientID, AppName, AppVersion: string);
+var
+  Arq: string;
 begin
   if Trim(TrackingID) = '' then
     raise Exception.Create('Invalid tracking ID');
@@ -59,6 +61,13 @@ begin
   FAppName := AppName;
   FAppVersion := AppVersion;
   FHttpClient := TRESTClient.Create(BASE_URL);
+  case TOSVersion.Architecture of
+      arIntelX86: Arq := 'x86';
+      arIntelX64: Arq := 'x64';  
+    end;
+    FHttpClient.UserAgent := 
+      Format('%s/%s (%s; %s)', [FAppName, FAppVersion, TOSVersion.Name, Arq]);
+  
   FFiels := TStringList.Create;
 //  FHttpClient.ProxyPort := 8888;
 //  FHttpClient.ProxyServer := 'localhost';
